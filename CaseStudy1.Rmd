@@ -1,0 +1,91 @@
+---
+title: "Case Study 1"
+author: "Yucheol Shin"
+date: "6/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Prepare Data
+```{r}
+library(ggplot2)
+library(tidyr)
+#library(plotly)
+library(dplyr)
+beers = read.csv("C:/Users/User 1/Desktop/SMU/DS6306/CaseStudy1/Beers.csv", header = TRUE)
+breweries = read.csv("C:/Users/User 1/Desktop/SMU/DS6306/CaseStudy1/Breweries.csv", header = TRUE)
+```
+
+# Number of Breweries per state
+```{r}
+totalState = count(breweries, State)
+breweries %>% ggplot(aes(x=State, fill = State)) + geom_bar() + geom_text(aes(State, totalState$n + 1, label=totalState$n, fill = NULL), data= totalState)
+```
+
+# Merge two data
+```{r}
+colnames(beers)[5] = "Brew_ID"
+fullData = merge(beers, breweries, by = "Brew_ID")
+head(fullData)
+```
+
+# Missing values
+```{r}
+sapply(fullData, function(x) sum(is.na(x)))
+
+cleanData = fullData %>% filter(!is.na(ABV) & !is.na(IBU))
+```
+
+# Median ABV and IBU per states
+```{r}
+cleanData %>% group_by(State) %>% summarize(medianABV = median(ABV), medianIBU = median(IBU), count = n())
+
+cleanData %>% 
+  group_by(State) %>% 
+  summarise(medianABV = median(ABV)) %>% 
+  gather(key, value, -State) %>% 
+  ggplot(aes(State, value, fill = key)) + geom_bar(stat = "identity", position = "dodge")
+
+cleanData %>% 
+  group_by(State) %>% 
+  summarise(medianIBU = median(IBU)) %>% 
+  gather(key, value, -State) %>% 
+  ggplot(aes(State, value, fill = key)) + geom_bar(stat = "identity", position = "dodge")
+```
+
+
+# Max ABV and IBU of state
+# Which state has max ABV / IBU
+```{r}
+cleanData %>% group_by(State) %>% summarize(maxABV = max(ABV), maxIBU = max(IBU))
+# Which state has max ABV / IBU
+```
+
+
+
+
+# Summarize ABV
+```{r}
+summary(cleanData$ABV)
+
+tapply(cleanData$ABV, cleanData$State, summary)
+```
+
+# Relationship between ABV and IBU
+```{r}
+cleanData %>% ggplot(aes(x=ABV, y=IBU, color=State)) + geom_point()
+```
+
+
+```{r}
+#1 - regex to filter NON ALE
+#2 - split to Two CLASS : IPA vs ALE
+#3 - Run multiple KNN with various K 
+testData = cleanData %>% filter(grepl("Ale", Style) | grepl("IPA", Style) )
+
+
+```
