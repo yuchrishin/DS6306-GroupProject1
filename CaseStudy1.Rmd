@@ -23,7 +23,7 @@ breweries = read.csv("C:/Users/User 1/Desktop/SMU/DS6306/CaseStudy1/Breweries.cs
 # Number of Breweries per state
 ```{r}
 totalState = count(breweries, State)
-breweries %>% ggplot(aes(x=State, fill = State)) + geom_bar() + geom_text(aes(State, totalState$n + 1, label=totalState$n, fill = NULL), data= totalState)
+breweries %>% ggplot(aes(x=State, fill = State)) + geom_bar() + geom_text(aes(State, n + 1, label=n, fill = NULL), data= totalState) + ggtitle("Number of Breweries for each State")
 ```
 
 # Merge two data
@@ -48,13 +48,14 @@ cleanData %>%
   group_by(State) %>% 
   summarise(medianABV = median(ABV)) %>% 
   gather(key, value, -State) %>% 
-  ggplot(aes(State, value, fill = key)) + geom_bar(stat = "identity", position = "dodge")
+  ggplot(aes(State, value, fill = key)) + geom_bar(stat = "identity", position = "dodge") + ggtitle("Median ABV for each State")
 
 cleanData %>% 
   group_by(State) %>% 
   summarise(medianIBU = median(IBU)) %>% 
   gather(key, value, -State) %>% 
-  ggplot(aes(State, value, fill = key)) + geom_bar(stat = "identity", position = "dodge")
+  ggplot(aes(State, value, fill = key)) + geom_bar(stat = "identity", position = "dodge") + ggtitle("Median IBU for each State") 
+
 ```
 
 
@@ -72,20 +73,38 @@ cleanData %>% group_by(State) %>% summarize(maxABV = max(ABV), maxIBU = max(IBU)
 ```{r}
 summary(cleanData$ABV)
 
-tapply(cleanData$ABV, cleanData$State, summary)
+# Histogram of ABV Percentage 
+cleanData  %>% ggplot(aes(ABV*100)) + geom_histogram(fill="darkblue",color="black", binwidth= 0.375) + xlab("% Alcohol by Volume (%ABV)") + ggtitle("Distribution of Beer %ABV, Right-Skewed") 
+
+# Box Plot
+boxplot(cleanData$ABV, col='orange',main = 'Alcohol by volume')
+
+# QQ plot for normality check
+qqnorm(cleanData$ABV, pch = 1, frame = FALSE)
+qqline(cleanData$ABV, col = "steelblue", lwd = 2, main = 'Alcohol by volume')
+
 ```
 
 # Relationship between ABV and IBU
 ```{r}
-cleanData %>% ggplot(aes(x=ABV, y=IBU, color=State)) + geom_point()
+# Scatter Plot for ABV vs IBU for each State
+cleanData %>% ggplot(aes(x=IBU, y=ABV, color=State)) + geom_point()
+
+#7 Scatter Plot for ABV vs IBU relationship
+
+theme_set(theme_bw())  # pre-set the bw theme.
+g <- ggplot(cleanData, aes(IBU, ABV, color='red'))
+g + geom_point(color='blue') + 
+  geom_smooth(method="lm", se=F) +
+  labs(y="ABV", 
+       x="IBU", 
+       title="ABV vs IBU Relationship")
+
 ```
 
 
+
+# KNN
 ```{r}
-#1 - regex to filter NON ALE
-#2 - split to Two CLASS : IPA vs ALE
-#3 - Run multiple KNN with various K 
-testData = cleanData %>% filter(grepl("Ale", Style) | grepl("IPA", Style) )
-
-
+filterData = cleanData %>% filter(grepl("Ale", Style) | grepl("IPA", Style))
 ```
