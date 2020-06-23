@@ -63,7 +63,13 @@ cleanData %>%
 # Which state has max ABV / IBU
 ```{r}
 cleanData %>% group_by(State) %>% summarize(maxABV = max(ABV), maxIBU = max(IBU))
-# Which state has max ABV / IBU
+
+maxABV = max(cleanData$ABV)
+maxIBU = max(cleanData$IBU)
+
+cleanData %>% filter(ABV == maxABV)
+cleanData %>% filter(IBU == maxIBU)
+
 ```
 
 
@@ -91,7 +97,6 @@ qqline(cleanData$ABV, col = "steelblue", lwd = 2, main = 'Alcohol by volume')
 cleanData %>% ggplot(aes(x=IBU, y=ABV, color=State)) + geom_point()
 
 #7 Scatter Plot for ABV vs IBU relationship
-
 theme_set(theme_bw())  # pre-set the bw theme.
 g <- ggplot(cleanData, aes(IBU, ABV, color='red'))
 g + geom_point(color='blue') + 
