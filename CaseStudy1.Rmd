@@ -16,14 +16,15 @@ library(ggplot2)
 library(tidyr)
 #library(plotly)
 library(dplyr)
-beers = read.csv("C:/Users/User 1/Desktop/SMU/DS6306/CaseStudy1/Beers.csv", header = TRUE)
-breweries = read.csv("C:/Users/User 1/Desktop/SMU/DS6306/CaseStudy1/Breweries.csv", header = TRUE)
+
+beers = read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/R-SMU/Beers.xlsx")
+breweries = read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/R-SMU/Breweries.xlsx")
 ```
 
 # Number of Breweries per state
 ```{r}
 totalState = count(breweries, State)
-breweries %>% ggplot(aes(x=State, fill = State)) + geom_bar() + geom_text(aes(State, n + 1, label=n, fill = NULL), data= totalState) + ggtitle("Number of Breweries for each State")
+breweries %>% ggplot(aes(x=State, fill = State)) + geom_bar() + geom_text(aes(State, n + 1, label=n, fill = NULL), data= totalState) + ggtitle("Number of Breweries for each State") + theme(axis.text.x = element_text(angle=90, vjust=0.6))
 ```
 
 # Merge two data
@@ -48,14 +49,27 @@ cleanData %>%
   group_by(State) %>% 
   summarise(medianABV = median(ABV)) %>% 
   gather(key, value, -State) %>% 
-  ggplot(aes(State, value, fill = key)) + geom_bar(stat = "identity", position = "dodge") + ggtitle("Median ABV for each State")
+  ggplot(aes(State, value, fill = key)) + geom_bar(stat = "identity", position = "dodge") + ggtitle("Median ABV for each State") + theme(axis.text.x = element_text(angle=90, vjust=0.6))
 
 cleanData %>% 
   group_by(State) %>% 
   summarise(medianIBU = median(IBU)) %>% 
   gather(key, value, -State) %>% 
-  ggplot(aes(State, value, fill = key)) + geom_bar(stat = "identity", position = "dodge") + ggtitle("Median IBU for each State") 
+  ggplot(aes(State, value, fill = key)) + geom_bar(stat = "identity", position = "dodge") + ggtitle("Median IBU for each State") + theme(axis.text.x = element_text(angle=90, vjust=0.6))
 
+```
+```{r}
+medABV <- cleanData %>% group_by(State) %>% summarize(medianABV = median(ABV), medianIBU = median(IBU), count = n()) %>% arrange(-medianABV)
+medABV <- medABV %>% select(State, medianABV)
+
+medIBU <- cleanData %>% group_by(State) %>% summarize(medianABV = median(ABV), medianIBU = median(IBU), count = n()) %>% arrange(-medianIBU)
+medIBU <- medIBU %>% select(State, medianIBU)
+
+head(medABV)
+tail(medABV)
+
+head(medIBU)
+tail(medIBU)
 ```
 
 
