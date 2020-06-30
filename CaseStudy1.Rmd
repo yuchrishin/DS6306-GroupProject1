@@ -14,11 +14,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(ggplot2)
 library(tidyr)
-#library(plotly)
+library(plyr)
 library(dplyr)
+library(class)
+library(caret)
+library(e1071)
 
-beers = read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/R-SMU/Beers.xlsx")
-breweries = read_excel("~/Library/Mobile Documents/com~apple~CloudDocs/R-SMU/Breweries.xlsx")
+beers = read.csv("C:/Users/User 1/Desktop/SMU/DS6306/CaseStudy1/Beers.csv", header = TRUE)
+breweries = read.csv("C:/Users/User 1/Desktop/SMU/DS6306/CaseStudy1/Breweries.csv", header = TRUE)
 ```
 
 # Number of Breweries per state
@@ -122,8 +125,152 @@ g + geom_point(color='blue') +
 ```
 
 
-
 # KNN
 ```{r}
+set.seed(4)
 filterData = cleanData %>% filter(grepl("Ale", Style) | grepl("IPA", Style))
+filterData$Style[grepl("Ale", filterData$Style)] = "Ale"
+filterData$Style[grepl("IPA", filterData$Style)] = "IPA"
+filterData$Style = as.factor(filterData$Style)
+
+splitPerc = .70
+trainIndices = sample(1:dim(filterData)[1],round(splitPerc * dim(filterData)[1]))
+train = filterData[trainIndices,]
+test = filterData[-trainIndices,]
+
+classifications = knn(train[,c(4,5)],test[,c(4,5)],train$Style, prob = TRUE, k = 5)
+table(test$Style,classifications)
+CM = confusionMatrix(table(test$Style,classifications))
+CM
+
 ```
+
+# KNN Acuracty Check
+```{r}
+set.seed(4)
+accs = data.frame(accuracy = numeric(90), k = numeric(90))
+highAcc = 0
+highK = 0
+for(i in 1:90)
+{
+  classifications = knn(train[,c(4,5)],test[,c(4,5)],train$Style, prob = TRUE, k = i)
+  table(test$Style,classifications)
+  CM = confusionMatrix(table(test$Style,classifications))
+  accs$accuracy[i] = CM$overall[1]
+  accs$k[i] = i
+  if(highAcc < accs$accuracy[i]) {
+    highAcc = accs$accuracy[i]
+    highK = i
+  }
+}
+plot(accs$k,accs$accuracy, type = "l", xlab = "k")
+highK
+```
+
+# KNN Cluster plot with k=3
+```{r}
+set.seed(4)
+fit = knn(train[,c(4,5)],test[,c(4,5)],train$Style, k=3)
+
+k3DF = data.frame(test, predicted = fit)
+
+k3DFBoundary = data.frame(x = k3DF$ABV, 
+                      y = k3DF$IBU, 
+                      predicted = k3DF$predicted)
+
+find_hull = function(df) df[chull(df$x, df$y), ]
+boundary = ddply(k3DFBoundary, .variables = "predicted", .fun = find_hull)
+
+test$Actual = as.character(test$Style)
+test$Actual = paste("Actual_", test$Actual)
+
+legends = c("Prediction" = 16, "Actual" = 17)
+
+ggplot() + 
+  geom_point(data=k3DF,aes(ABV, IBU, color=predicted, fill=predicted), size = 5) + 
+  geom_polygon(data = boundary, aes(x,y, color=predicted, fill=predicted), alpha = 0.5)+
+  geom_point(aes(ABV, IBU, color=Style), data=test) + ggtitle("KNN Cluster Plot with k = 3")
+```
+
+# KNN Cluster plot with k=6
+```{r}
+set.seed(4)
+fit = knn(train[,c(4,5)],test[,c(4,5)],train$Style, k=6)
+
+k6DF = data.frame(test, predicted = fit)
+
+k6DFBoundary = data.frame(x = k6DF$ABV, 
+                      y = k6DF$IBU, 
+                      predicted = k6DF$predicted)
+
+find_hull = function(df) df[chull(df$x, df$y), ]
+boundary = ddply(k6DFBoundary, .variables = "predicted", .fun = find_hull)
+
+test$Actual = as.character(test$Style)
+test$Actual = paste("Actual_", test$Actual)
+
+ggplot() + 
+  geom_point(data=k6DF,aes(ABV, IBU, color=predicted, fill=predicted), size = 5) + 
+  geom_polygon(data = boundary, aes(x,y, color=predicted, fill=predicted), alpha = 0.5)+
+  geom_point(aes(ABV, IBU, color=Style), data=test) + ggtitle("KNN Cluster Plot with k = 6") 
+```
+
+# KNN Cluster Plot for American Ales
+```{r}
+set.seed(4)
+splitPerc = .70
+aleData = cleanData %>% filter(grepl("Ale", Style) & grepl("American", Style))
+trainIndices = sample(1:dim(aleData)[1],round(splitPerc * dim(aleData)[1]))
+trainAle = aleData[trainIndices,]
+testAle = aleData[-trainIndices,]
+fit = knn(trainAle[,c(4,5)],testAle[,c(4,5)],trainAle$Style, k=3)
+
+predAleDF = data.frame(testAle, predicted = fit)
+
+predAleBoundary = data.frame(x = predAleDF$ABV, 
+                      y = predAleDF$IBU, 
+                      predicted = predAleDF$predicted)
+
+find_hull = function(df) df[chull(df$x, df$y), ]
+boundary = ddply(predAleBoundary, .variables = "predicted", .fun = find_hull)
+
+ggplot() + 
+  geom_point(data=predAleDF,aes(ABV, IBU, color=predicted, fill=predicted), size = 5) + 
+  geom_polygon(data = boundary, aes(x,y, color=predicted, fill=predicted), alpha = 0.5)+
+  geom_point(aes(ABV, IBU, color=Style), data=testAle) + ggtitle("KNN Cluster Plot for American Ales") 
+```
+
+# KNN Cluster Plot for IPA
+```{r}
+set.seed(4)
+splitPerc = .70
+ipaData  = cleanData %>% filter(grepl("IPA", Style))
+trainIndices = sample(1:dim(ipaData)[1],round(splitPerc * dim(ipaData)[1]))
+trainIPA = ipaData[trainIndices,]
+testIPA = ipaData[-trainIndices,]
+fit = knn(trainIPA[,c(4,5)],testIPA[,c(4,5)],trainIPA$Style, k=3)
+
+predIpaDF = data.frame(testIPA, predicted = fit)
+
+predIpaBoundary = data.frame(x = predIpaDF$ABV, 
+                      y = predIpaDF$IBU, 
+                      predicted = predIpaDF$predicted)
+
+find_hull = function(df) df[chull(df$x, df$y), ]
+boundary = ddply(predIpaBoundary, .variables = "predicted", .fun = find_hull)
+
+ggplot() + 
+  geom_point(data=predIpaDF, aes(ABV, IBU, color=predicted, fill=predicted), size = 5) + 
+  geom_polygon(data = boundary, aes(x,y, color=predicted, fill=predicted), alpha = 0.5)+
+  geom_point(aes(ABV, IBU, color=Style), data=test) + ggtitle("KNN Cluster Plot") + ggtitle("KNN Cluster Plot for IPA") 
+```
+
+# State comparison for HighABV&IBU ALE vs. Low ABV&IBU IPA
+```{r}
+filterData$IBU = as.numeric(filterData$IBU)
+stateData = filterData %>% filter(((ABV<0.055) & (IBU<50) & (Style=="IPA")) | ((ABV>0.055) & (IBU>50) & (Style=="Ale")))
+stateData %>% ggplot(aes(x=State, fill = Style)) + geom_bar() + ggtitle("Histogram of High ABV/IBU Ale vs. Low ABV/IBU IPA for each states") 
+filterData %>% ggplot(aes(x=State, fill=Style)) +geom_bar() + ggtitle("Histogram of Ale vs. IPA for each states")  + theme(axis.text.x = element_text(angle=90, vjust=0.6))
+```
+
+
