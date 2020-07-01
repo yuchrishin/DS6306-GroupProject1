@@ -19,6 +19,7 @@ library(dplyr)
 library(class)
 library(caret)
 library(e1071)
+library("RColorBrewer")
 
 beers = read.csv("C:/Users/User 1/Desktop/SMU/DS6306/CaseStudy1/Beers.csv", header = TRUE)
 breweries = read.csv("C:/Users/User 1/Desktop/SMU/DS6306/CaseStudy1/Breweries.csv", header = TRUE)
@@ -223,7 +224,7 @@ aleData = cleanData %>% filter(grepl("Ale", Style) & grepl("American", Style))
 trainIndices = sample(1:dim(aleData)[1],round(splitPerc * dim(aleData)[1]))
 trainAle = aleData[trainIndices,]
 testAle = aleData[-trainIndices,]
-fit = knn(trainAle[,c(4,5)],testAle[,c(4,5)],trainAle$Style, k=3)
+fit = knn(trainAle[,c(4,5)],testAle[,c(4,5)],trainAle$Style, k=6)
 
 predAleDF = data.frame(testAle, predicted = fit)
 
@@ -234,10 +235,12 @@ predAleBoundary = data.frame(x = predAleDF$ABV,
 find_hull = function(df) df[chull(df$x, df$y), ]
 boundary = ddply(predAleBoundary, .variables = "predicted", .fun = find_hull)
 
+palettes = brewer.pal(n = 9, name = "Set3")
+colors = c("American Amber / Red Ale" = palettes[1], "American Black Ale" = palettes[2], "American Blonde Ale" = palettes[3], "American Brown Ale" = palettes[4], "American Dark Wheat Ale" = palettes[5], "American Pale Ale (APA)" = palettes[6], "American Pale Wheat Ale" = palettes[7], "American Strong Ale" = palettes[8], "American Wild Ale" = palettes[9])
 ggplot() + 
   geom_point(data=predAleDF,aes(ABV, IBU, color=predicted, fill=predicted), size = 5) + 
   geom_polygon(data = boundary, aes(x,y, color=predicted, fill=predicted), alpha = 0.5)+
-  geom_point(aes(ABV, IBU, color=Style), data=testAle) + ggtitle("KNN Cluster Plot for American Ales") 
+  geom_point(aes(ABV, IBU, color=Style), data=testAle) + ggtitle("KNN Cluster Plot for American Ales") +     scale_color_manual(values = colors) + scale_fill_manual(values = colors)
 ```
 
 # KNN Cluster Plot for IPA
@@ -248,8 +251,7 @@ ipaData  = cleanData %>% filter(grepl("IPA", Style))
 trainIndices = sample(1:dim(ipaData)[1],round(splitPerc * dim(ipaData)[1]))
 trainIPA = ipaData[trainIndices,]
 testIPA = ipaData[-trainIndices,]
-fit = knn(trainIPA[,c(4,5)],testIPA[,c(4,5)],trainIPA$Style, k=3)
-
+fit = knn(trainIPA[,c(4,5)],testIPA[,c(4,5)],trainIPA$Style, k=6)
 predIpaDF = data.frame(testIPA, predicted = fit)
 
 predIpaBoundary = data.frame(x = predIpaDF$ABV, 
@@ -259,10 +261,12 @@ predIpaBoundary = data.frame(x = predIpaDF$ABV,
 find_hull = function(df) df[chull(df$x, df$y), ]
 boundary = ddply(predIpaBoundary, .variables = "predicted", .fun = find_hull)
 
+colors = c("American Double / Imperial IPA" = "red", "American IPA" = "blue", "Belgian IPA" = "green", "English India Pale Ale (IPA)" = "yellow")
 ggplot() + 
   geom_point(data=predIpaDF, aes(ABV, IBU, color=predicted, fill=predicted), size = 5) + 
   geom_polygon(data = boundary, aes(x,y, color=predicted, fill=predicted), alpha = 0.5)+
-  geom_point(aes(ABV, IBU, color=Style), data=test) + ggtitle("KNN Cluster Plot") + ggtitle("KNN Cluster Plot for IPA") 
+  geom_point(aes(ABV, IBU, color=Style), data=testIPA) + ggtitle("KNN Cluster Plot") + ggtitle("KNN Cluster Plot for IPA") +     scale_color_manual(values = colors) + scale_fill_manual(values = colors)
+
 ```
 
 # State comparison for HighABV&IBU ALE vs. Low ABV&IBU IPA
