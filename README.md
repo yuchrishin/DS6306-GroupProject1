@@ -6,7 +6,7 @@ The code book is provided as an Rmarkdown (.rmd) file called Casestudy1. The fin
 
 The presentation slides are included as a .pdf file that includes links to youtube.
 
-CSV Files:
+DATA-CSV Files:
 Beers.csv
 Breweries.csv
 CleanData.csv
