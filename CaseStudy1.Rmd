@@ -46,7 +46,7 @@ head(fullData)
 ```
 
 # Missing values
-In order to process the analysis, we need to clean up data as there might be some missing data or incorrectly formatted data. We run below code to find out if there is any missing data. 
+In order to process the analysis, we need to clean up data as there might be some missing data or incorrectly formatted data. Below are the code that we have ran to find out if there is any missing data. 
 ```{r}
 sapply(fullData, function(x) sum(is.na(x)))
 
@@ -101,7 +101,7 @@ cleanData %>% filter(ABV == maxABV)
 cleanData %>% filter(IBU == maxIBU)
 
 ```
-First chart display max ABV and IBU for each state. From the data, we found that London Balling has ABV of 0.125 and it is the beer that has maximum ABV among all beers. We also found Bitter Bitch Imperial IPA contains IBU of 138 which is the maximum among all beers.
+First chart display max ABV and IBU for each state. From the data, we found that London Balling has ABV of 0.125 and it has maximum ABV among all beers. We also found Bitter Bitch Imperial IPA contains IBU of 138 which is the maximum among all beers.
 
 
 
@@ -163,11 +163,11 @@ CM = confusionMatrix(table(test$Style,classifications))
 CM
 
 ```
-From the confusion matrix, we can see our model provide accuracy of 0.8339. Looking at sensitivity, predicting right Ale, it has 0.8778 which is quite good accuracy. Interesting is that specificity, predicting right IPA, came out to be bit low, which is 0.7573. We can ask a question here why predicting IPA is more challenging than ALE.
+From the confusion matrix, we can see our model provide accuracy of 0.8339. Looking at sensitivity, predicting right Ale, it has 0.8778 which is quite good accuracy. One of the intesting observation is that our model has predicted IPA correctly. The number came out to be bit low, which is 0.7573. We can ask a question here why predicting IPA is more challenging than ALE.
 
 
 # KNN Acuracty Check
-Depends on K value, the accuracy is different. In order to get the best result, we need to give right k value for out model. To resolve this, we ran 90 times with different k values. From the accuracy graph, we found k=6 provides us best accuracy result.
+The accuracy is different depending on K value. In order to get the best result, we need to give right k value for out model. To resolve this, we ran 90 times with different k values. From the accuracy graph, we found k=6 provides us best accuracy result.
 ```{r}
 set.seed(4)
 accs = data.frame(accuracy = numeric(90), k = numeric(90))
@@ -237,7 +237,7 @@ ggplot() +
   geom_polygon(data = boundary, aes(x,y, color=predicted, fill=predicted), alpha = 0.5)+
   geom_point(aes(ABV, IBU, color=Style), data=test) + ggtitle("KNN Cluster Plot with k = 6") 
 ```
-We have two plots to show using right K value create better prediction. As you can see the plot with k as 6, the one gaved high accuracy, have more accurate data points on the cluster than plot with k as 3
+We have two plots to show using right K value create better prediction. As you can see the plot with k as 6, the one that has provided high accuracy, has provided more accurate data points on the cluster than plot with k as 3
 
 We can make several assumption from this plot. We can see there is cluster of IPA on upper plot. Thus we can assume that beers are mostly like to be IPA when it has high IBU. Similarly looking at the cluster on the bottom, we can make assumption that beers are most likely to be an Ale when it has lower IBU. ABV can be also another factor of determining the style of beers as we can see there are more Ale on lower ABV then higher ABV and more IPA on higher ABV than lower ABV.
 
