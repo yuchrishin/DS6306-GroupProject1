@@ -4,4 +4,4 @@ This project is an analysis of a beer and brewery data set which contains 2410 U
 
 The code book is provided as an Rmarkdown (.rmd) file called Casestudy1. The final report is knitted fro Rmd is also included.
 
-The presentation slides are included as a .pdf file that included links to youtube.
+The presentation slides are included as a .pdf file that includes links to youtube.
